@@ -5,7 +5,8 @@ namespace Mi_Task_Api.ModelDto
     public class MiTaskDto
     {
         [Required]
-        public string UserId { get; set; } = null!;  
+        public string UserId { get; set; } = null!;        
+        public int TaskId { get; set; } 
         [Required]
         [MaxLength(400)]
         public string Description { get; set; } = null!;

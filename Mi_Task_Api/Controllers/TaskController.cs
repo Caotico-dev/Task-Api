@@ -91,7 +91,7 @@ namespace Mi_Task_Api.Controllers
                     IdFriendShip = friends.FriendId,
                 };
 
-                var result = await _friends.AddFriend(friendShip);
+                bool result = await _friends.AddFriend(friendShip);
                 if (result)
                 {
                     return Ok("Friend Added Successfully");
@@ -109,7 +109,7 @@ namespace Mi_Task_Api.Controllers
             if (ModelState.IsValid)
             {               
 
-                var result = await _friends.AssignedFriendStatus(id,status);
+                bool result = await _friends.AssignedFriendStatus(id,status);
                 if (result)
                 {
                     return Ok("Status Assigned Successfully");
@@ -139,7 +139,7 @@ namespace Mi_Task_Api.Controllers
                     Comments = addtask.Comments,
                     ExpectedResults = addtask.ExpectedResults
                 };
-                var result = await _task.AddTask(task);
+                bool result = await _task.AddTask(task);
                 if (result)
                 {
                     return Ok("Task Added Successfully");
@@ -169,6 +169,20 @@ namespace Mi_Task_Api.Controllers
             }
             return BadRequest("Invalid Data");
 
+        }
+        [HttpPatch("/scoretaskstatus={scoredtaskid},{status}")]
+        public async Task<IActionResult> ReceivingScoredTaskStatus(int scoredtaskid,string status)
+        {
+            if (ModelState.IsValid)
+            {
+                bool result = await _task.AssignedScoreTaskStatus(scoredtaskid, status);
+                if (result)
+                {
+                    return Ok("Successfully assigned status");
+                }
+                return NotFound("Failed to assigned status");
+            }
+            return BadRequest("Invalid Data");
         }
         [HttpPatch("/taskstatus={taskId},{status}")]
         public async Task<IActionResult> ReceivingTaskStatus(int taskId,string status)

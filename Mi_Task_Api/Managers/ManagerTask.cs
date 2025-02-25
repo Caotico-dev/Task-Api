@@ -8,7 +8,8 @@ namespace Mi_Task_Api.Managers
         Task<bool> AddTask(MiTasks task);
         Task<MiTasks> GetTask(int TaskId);
         Task<bool> AssignedTask(ScoredTasks scoredTasks);
-        Task<bool> AssignedTaskStatus(int TaskId,string status);    
+        Task<bool> AssignedTaskStatus(int TaskId,string status); 
+        Task<bool> AssignedScoreTaskStatus(int ScoredTaskId,string status);
         Task<bool> RemoveTask(int Taskid);
         Task<bool> RemoveScoreTask(int taskId);
     }   
@@ -17,10 +18,12 @@ namespace Mi_Task_Api.Managers
     {
         private readonly UserDbContext _context;
         private readonly IVerifyTask _VerifyTask;
-        public ManagerTask(UserDbContext context,IVerifyTask verifyTask)
+        private readonly IStatus _status;
+        public ManagerTask(UserDbContext context,IVerifyTask verifyTask,IStatus status)
         {
             _context = context;
             _VerifyTask = verifyTask;
+            _status = status;
         }
 
         public async Task<bool> AddTask(MiTasks task)
@@ -168,7 +171,36 @@ namespace Mi_Task_Api.Managers
                 Console.WriteLine(ex);
                 return false;
             }
-        }        
-      
+        }
+
+        public async Task<bool> AssignedScoreTaskStatus(int ScoredTaskId, string status)
+        {
+            try
+            {
+                if(ScoredTaskId > 0)
+                {
+                    var scoredtask = await _context.ScoredTasks.FindAsync(ScoredTaskId);
+                    if(scoredtask == null)
+                    {
+                        return false;
+                    }
+
+                    scoredtask!.Status = _status.VerifyStatus(status);
+                    _context.ScoredTasks.Update(scoredtask);
+                    int save = await _context.SaveChangesAsync();
+                    if (save > 0)
+                    {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return false;
+            }
+        }
     }
 }

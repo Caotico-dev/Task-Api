@@ -102,6 +102,27 @@
   },
   {
     "ContainingType": "Mi_Task_Api.Controllers.TaskController",
+    "Method": "ReceivingScoredTaskStatus",
+    "RelativePath": "scoretaskstatus={scoredtaskid},{status}",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "scoredtaskid",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "status",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Mi_Task_Api.Controllers.TaskController",
     "Method": "SignUser",
     "RelativePath": "sign",
     "HttpMethod": "POST",

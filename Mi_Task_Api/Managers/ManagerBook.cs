@@ -8,12 +8,16 @@ namespace Mi_Task_Api.Managers
     {
         Task<NoteBook?> GetNotebook(string userId);
     }
+    public class AddTask { 
+    }
     public class ManagerBook:INoteBook
     {
-        private UserDbContext _db;
+        private readonly UserDbContext _db;
+        private NoteBook _noteBook;
         public ManagerBook(UserDbContext userDbContext)
         {
             _db = userDbContext;
+            _noteBook = new NoteBook();
         }
 
         public async Task<NoteBook?> GetNotebook(string userId)
@@ -29,13 +33,13 @@ namespace Mi_Task_Api.Managers
                 .Include(u => u.ScoredTasks)
                 .Include(u => u.Friends)
                 .FirstOrDefaultAsync(u => u.Id == userId);
-
+            
             if (user == null)
             {
                 return null;
             }
 
-            
+
             var notebook = new NoteBook
             {
                 Name = user.UserName,
@@ -56,6 +60,7 @@ namespace Mi_Task_Api.Managers
                 MiTaskDtos = user.MiTasks.Select(mt => new MiTaskDto
                 {
                     UserId = mt.IdUser,
+                    TaskId = mt.TaskId,
                     Description = mt.Description,
                     Prioritis = mt.Prioritis,
                     Term = mt.Term,
@@ -65,10 +70,36 @@ namespace Mi_Task_Api.Managers
                     SubTasks = mt.SubTasks,
                     Comments = mt.Comments,
                     ExpectedResults = mt.ExpectedResults
-                }).ToList()
+                }).ToList(),
+                TaskNoteds = await this.GetTaskNoteds(user.Id)
             };
 
             return notebook;
         }
+        private async Task<List<TaskNoted>> GetTaskNoteds(string UserId)
+        {
+            var tasknoted = await _db.ScoredTasks
+                            .Where(sd => sd.IdUser == UserId && sd.Status == Status.Accepted.ToString())
+                            .Select(sd => new TaskNoted
+                            {
+                                UserId = sd.MiTasks.IdUser,
+                                TaskId = sd.MiTasks.TaskId,
+                                Description = sd.MiTasks.Description,
+                                Prioritis = sd.MiTasks.Prioritis,
+                                Term = sd.MiTasks.Term,
+                                Resource = sd.MiTasks.Resource,
+                                Status = sd.MiTasks.Status,
+                                Dependecy = sd.MiTasks.Dependecy,
+                                SubTasks = sd.MiTasks.SubTasks,
+                                Comments = sd.MiTasks.Comments,
+                                ExpectedResults = sd.MiTasks.ExpectedResults
+
+                            }) // Proyecta y combina las colecciones relacionadas
+                            .ToListAsync(); // Trae todas las entidades relacionadas en forma de lista
+                                             
+            return tasknoted;          
+
+        }
+
     }
 }
