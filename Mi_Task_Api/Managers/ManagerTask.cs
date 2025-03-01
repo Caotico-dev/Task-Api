@@ -94,10 +94,10 @@ namespace Mi_Task_Api.Managers
                 return false;
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                Console.WriteLine(ex.Message);
+                return false;
             }
         }
 
@@ -143,8 +143,8 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-
-                throw;
+                Console.WriteLine(ex.Message);
+                return false;
             }
         }
         public async Task<bool> RemoveScoreTask(int taskId)

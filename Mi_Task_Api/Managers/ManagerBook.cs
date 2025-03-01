@@ -7,18 +7,13 @@ namespace Mi_Task_Api.Managers
     public interface INoteBook
     {
         Task<NoteBook?> GetNotebook(string userId);
-    }
-    public class AddTask { 
-    }
+    }    
     public class ManagerBook:INoteBook
     {
         private readonly UserDbContext _db;
-        private NoteBook _noteBook;
-        public ManagerBook(UserDbContext userDbContext)
-        {
-            _db = userDbContext;
-            _noteBook = new NoteBook();
-        }
+        
+        public ManagerBook(UserDbContext userDbContext) => _db = userDbContext;
+
 
         public async Task<NoteBook?> GetNotebook(string userId)
         {
