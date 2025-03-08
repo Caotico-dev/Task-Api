@@ -80,6 +80,10 @@
               "target": "Package",
               "version": "[6.0.0, )"
             },
+            "Serilog.Sinks.MongoDB": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.4.0, )"

@@ -16,10 +16,12 @@ namespace Mi_Task_Api.Managers
         
         private readonly UserDbContext _db;
         private readonly IStatus _status;
-        public ManagerFriends(UserDbContext db,IStatus status )
+        private readonly ILogger<ManagerFriends> _logger;   
+        public ManagerFriends(UserDbContext db,IStatus status,ILogger<ManagerFriends> logger)
         {
             _db = db;          
             _status = status;
+            _logger = logger;
         }
 
         public async Task<bool> AddFriend(Friends friends)
@@ -44,7 +46,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex,"Error in AddFriend");   
                 return false;
             }
 
@@ -74,7 +76,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex, "Error in AssignedFriendStatus");
                 return false;
             }
         }
@@ -95,7 +97,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex, "Error in GetFriends");    
                 return null;
             }   
         }

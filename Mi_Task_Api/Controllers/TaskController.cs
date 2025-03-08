@@ -18,12 +18,15 @@ namespace Mi_Task_Api.Controllers
         private readonly IFriends _friends;
         private readonly ITasks _task;
         private readonly INoteBook _noteBook;
+        private readonly ILogger<TaskController> _logger;
+
         public TaskController(UserManager<User> userManager,
                               SignInManager<User> signInManager,
                               IControllerAuthentication controllerAuthentication,
                               IFriends friends,
                               ITasks tasks,
-                              INoteBook book)
+                              INoteBook book,
+                              ILogger<TaskController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -31,201 +34,292 @@ namespace Mi_Task_Api.Controllers
             _friends = friends;
             _task = tasks;
             _noteBook = book;
+            _logger = logger;   
 
         }
 
         [HttpPost("/registar")]
         public async Task<IActionResult> RegisterUser([FromBody] Register register)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var user = new User
+                if (ModelState.IsValid)
                 {
-                    UserName = register.Name,
-                    Email = register.Email
-                };
-                var result = await _userManager.CreateAsync(user, register.Password);
-                if (result.Succeeded)
-                {
-                    return Ok("User Created Successfully");
+                    var user = new User
+                    {
+                        UserName = register.Name,
+                        Email = register.Email
+                    };
+                    var result = await _userManager.CreateAsync(user, register.Password);
+                    if (result.Succeeded)
+                    {
+                        return Ok("User Created Successfully");
+                    }
+                    else
+                    {
+                        return BadRequest(result.Errors);
+                    }
                 }
-                else
-                {
-                    return BadRequest(result.Errors);
-                }
+                return BadRequest("Invalid Data");
             }
-            return BadRequest("Invalid Data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RegisterUser");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in RegisterUser");
+            }
+            
         }
         [HttpPost("/sign")]
         public async Task<IActionResult> SignUser([FromBody] Login login)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var user = await _userManager.FindByEmailAsync(login.Email);
-                if (user == null)
+                if (ModelState.IsValid)
                 {
-                    return Unauthorized("unauthorized user");
-                }             
-               
+                    var user = await _userManager.FindByEmailAsync(login.Email);
+                    if (user == null)
+                    {
+                        return Unauthorized("unauthorized user");
+                    }
 
-                var result = this._signInManager.PasswordSignInAsync(user.UserName!, login.Password, isPersistent: false, lockoutOnFailure: false);
-                if (result.Result.Succeeded)
-                {
-                    var token = _controllerAuthentication.GenerateJwtToken(user!);
-                    var note = await _noteBook.GetNotebook(user.Id);
-                    note!.Token = token;
-                    return Ok(note);
 
+                    var result = this._signInManager.PasswordSignInAsync(user.UserName!, login.Password, isPersistent: false, lockoutOnFailure: false);
+                    if (result.Result.Succeeded)
+                    {
+                        var token = _controllerAuthentication.GenerateJwtToken(user!);
+                        var note = await _noteBook.GetNotebook(user.Id);
+                        note!.Token = token;
+                        return Ok(note);
+
+                    }
                 }
+                return Unauthorized("unauthorized user");
             }
-            return Unauthorized("unauthorized user");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SignUser");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in SignUser");
+            }
+            
         }
         [HttpPost("/addfriend")]
         public async Task<IActionResult> ReceivingAddFriend([FromBody] FriendsDto friends)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var friendShip = new Friends
+                if (ModelState.IsValid)
                 {
-                    IdUser = friends.UserId,
-                    IdFriendShip = friends.FriendId,
-                };
+                    var friendShip = new Friends
+                    {
+                        IdUser = friends.UserId,
+                        IdFriendShip = friends.FriendId,
+                    };
 
-                bool result = await _friends.AddFriend(friendShip);
-                if (result)
-                {
-                    return Ok("Friend Added Successfully");
+                    bool result = await _friends.AddFriend(friendShip);
+                    if (result)
+                    {
+                        return Ok("Friend Added Successfully");
+                    }
+                    else
+                    {
+                        return StatusCode(500, "Failed to Add Friend");
+                    }
                 }
-                else
-                {
-                    return StatusCode(500, "Failed to Add Friend");
-                }
+                return BadRequest("Invalid Data");
             }
-            return BadRequest("Invalid Data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReceivingAddFriend");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingAddFriend");
+            }
+            
         }
         [HttpPatch("/assignedstatus={id},{status}")]
         public async Task<IActionResult> ReceivingAssignedStatus(int id, string status)
         {
-            if (ModelState.IsValid)
-            {               
+            try
+            {
+                if (ModelState.IsValid)
+                {
 
-                bool result = await _friends.AssignedFriendStatus(id,status);
-                if (result)
-                {
-                    return Ok("Status Assigned Successfully");
+                    bool result = await _friends.AssignedFriendStatus(id, status);
+                    if (result)
+                    {
+                        return Ok("Status Assigned Successfully");
+                    }
+                    else
+                    {
+                        return StatusCode(500, "Failed to Assign Status");
+                    }
                 }
-                else
-                {
-                    return StatusCode(500, "Failed to Assign Status");
-                }
+                return BadRequest("Invalid Data");
             }
-            return BadRequest("Invalid Data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReceivingAssignedStatus");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingAssignedStatus");
+            }
+            
         }
         [HttpPost("/addtask")]
         public async Task<IActionResult> ReceivingTask([FromBody] MiTaskDto addtask)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var task = new MiTasks
+                if (ModelState.IsValid)
                 {
-                    IdUser = addtask.UserId,
-                    Description = addtask.Description,
-                    Prioritis = addtask.Prioritis,
-                    Term = addtask.Term,
-                    Resource = addtask.Resource,
-                    Status = addtask.Status,
-                    Dependecy = addtask.Dependecy,
-                    SubTasks = addtask.SubTasks,
-                    Comments = addtask.Comments,
-                    ExpectedResults = addtask.ExpectedResults
-                };
-                bool result = await _task.AddTask(task);
-                if (result)
-                {
-                    return Ok("Task Added Successfully");
-                }
-                return StatusCode(500, "Failed to add task");
+                    var task = new MiTasks
+                    {
+                        IdUser = addtask.UserId,
+                        Description = addtask.Description,
+                        Prioritis = addtask.Prioritis,
+                        Term = addtask.Term,
+                        Resource = addtask.Resource,
+                        Status = addtask.Status,
+                        Dependecy = addtask.Dependecy,
+                        SubTasks = addtask.SubTasks,
+                        Comments = addtask.Comments,
+                        ExpectedResults = addtask.ExpectedResults
+                    };
+                    bool result = await _task.AddTask(task);
+                    if (result)
+                    {
+                        return Ok("Task Added Successfully");
+                    }
+                    return StatusCode(500, "Failed to add task");
 
+                }
+                return BadRequest("Invalid Data");
             }
-            return BadRequest("Invalid Data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReceivingTask");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingTask");
+            }
+            
         }
         [HttpPost("/addscoredtask")]
         public async Task<IActionResult> ReceivingScoreTask([FromBody] ScoredTaskDto addScoredTask)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var scoredtask = new ScoredTasks
+                if (ModelState.IsValid)
                 {
-                    IdUser = addScoredTask.IdUser,
-                    IdTask = addScoredTask.IdTask,
+                    var scoredtask = new ScoredTasks
+                    {
+                        IdUser = addScoredTask.IdUser,
+                        IdTask = addScoredTask.IdTask,
 
-                };
-                bool result = await _task.AssignedTask(scoredtask);
-                if (result)
-                {
-                    return Ok("Task assigned Successfully");
+                    };
+                    bool result = await _task.AssignedTask(scoredtask);
+                    if (result)
+                    {
+                        return Ok("Task assigned Successfully");
+                    }
+                    return StatusCode(500, "Failed to add score task.");
                 }
-                return StatusCode(500, "Failed to add score task.");
+                return BadRequest("Invalid Data");
             }
-            return BadRequest("Invalid Data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReceivingScoreTask");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingScoreTask");
+            }
+            
 
         }
         [HttpPatch("/scoretaskstatus={scoredtaskid},{status}")]
         public async Task<IActionResult> ReceivingScoredTaskStatus(int scoredtaskid,string status)
         {
-            if (ModelState.IsValid)
+            try
             {
-                bool result = await _task.AssignedScoreTaskStatus(scoredtaskid, status);
-                if (result)
+                if (ModelState.IsValid)
                 {
-                    return Ok("Successfully assigned status");
+                    bool result = await _task.AssignedScoreTaskStatus(scoredtaskid, status);
+                    if (result)
+                    {
+                        return Ok("Successfully assigned status");
+                    }
+                    return NotFound("Failed to assigned status");
                 }
-                return NotFound("Failed to assigned status");
+                return BadRequest("Invalid Data");
             }
-            return BadRequest("Invalid Data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReceivingScoredTaskStatus");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingScoredTaskStatus");
+            }
+            
         }
         [HttpPatch("/taskstatus={taskId},{status}")]
         public async Task<IActionResult> ReceivingTaskStatus(int taskId,string status)
         {
-            if (ModelState.IsValid)
+            try
             {
-                bool result = await _task.AssignedTaskStatus(taskId, status);
-                if (result)
+                if (ModelState.IsValid)
                 {
-                    return Ok("Successfully assigned status");
+                    bool result = await _task.AssignedTaskStatus(taskId, status);
+                    if (result)
+                    {
+                        return Ok("Successfully assigned status");
+                    }
+                    return NotFound("Failed to assigned status");
                 }
-                return NotFound("Failed to assigned status");
+                return BadRequest("Invalid Data");
             }
-            return BadRequest("Invalid Data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReceivingTaskStatus");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingTaskStatus");
+            }
+           
 
         }
         [HttpDelete("/taskremove={taskid}")]
         public async Task<IActionResult> ReceivingRemoveTask(int taskid)
         {
-            if (ModelState.IsValid)
+            try
             {
-                bool result = await _task.RemoveTask(taskid);
-                if (result)
+                if (ModelState.IsValid)
                 {
-                    return NoContent();                    
+                    bool result = await _task.RemoveTask(taskid);
+                    if (result)
+                    {
+                        return NoContent();
+                    }
+                    return NotFound("Failed to remove task");
                 }
-                return NotFound("Failed to remove task");
+                return BadRequest("Invalid Data");
             }
-            return BadRequest("Invalid Data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReceivingRemoveTask");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingRemoveTask");
+            }
+            
         }
         [HttpDelete("/removescoretask={taskid}")]
         public async Task<IActionResult> ReceivingRemoveScoreTask(int taskid)
         {
-            if (ModelState.IsValid)
+            try
             {
-                bool result = await _task.RemoveScoreTask(taskid);
-                if (result)
+                if (ModelState.IsValid)
                 {
-                    return NoContent();
+                    bool result = await _task.RemoveScoreTask(taskid);
+                    if (result)
+                    {
+                        return NoContent();
+                    }
+                    return NotFound("Failed to remove score task");
                 }
-                return NotFound("Failed to remove score task");
+                return BadRequest("Invalid Data");
             }
-            return BadRequest("Invalid Data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReceivingRemoveScoreTask");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingRemoveScoreTask");
+            }
+           
         }
     }
 }

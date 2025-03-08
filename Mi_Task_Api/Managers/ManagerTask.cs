@@ -19,11 +19,13 @@ namespace Mi_Task_Api.Managers
         private readonly UserDbContext _context;
         private readonly IVerifyTask _VerifyTask;
         private readonly IStatus _status;
-        public ManagerTask(UserDbContext context,IVerifyTask verifyTask,IStatus status)
+        private readonly ILogger<ManagerTask> _logger;
+        public ManagerTask(UserDbContext context,IVerifyTask verifyTask,IStatus status,ILogger<ManagerTask> logger)
         {
             _context = context;
             _VerifyTask = verifyTask;
             _status = status;
+            _logger = logger;
         }
 
         public async Task<bool> AddTask(MiTasks task)
@@ -45,7 +47,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex,"Error in AddTask");
                 return false;
             }
         }
@@ -68,7 +70,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex, "Error in AssignedTask");
                 return false;
             }
         }
@@ -96,7 +98,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex, "Error in AssignedTaskStatus");
                 return false;
             }
         }
@@ -117,7 +119,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex, "Error in GetTask");
                 return null;
             }    
         }
@@ -143,7 +145,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex, "Error in RemoveTask");    
                 return false;
             }
         }
@@ -168,7 +170,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Error in RemoveScoreTask");
                 return false;
             }
         }
@@ -198,7 +200,7 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Error in AssignedScoreTaskStatus");
                 return false;
             }
         }
