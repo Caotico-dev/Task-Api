@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Mi_Task_Api.ModelDto;
 using Mi_Task_Api.Authentication;
 using Mi_Task_Api.Managers;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Mi_Task_Api.Controllers
 {
@@ -37,6 +39,17 @@ namespace Mi_Task_Api.Controllers
             _logger = logger;   
 
         }
+        protected string GetUserId()
+{
+    var userid = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (userid == null)
+    {
+        throw new UnauthorizedAccessException("User ID not found. The user is not authorized.");
+    }
+    return userid;
+}
+
+
 
         [HttpPost("/registar")]
         public async Task<IActionResult> RegisterUser([FromBody] Register register)
@@ -50,6 +63,7 @@ namespace Mi_Task_Api.Controllers
                         UserName = register.Name,
                         Email = register.Email
                     };
+
                     var result = await _userManager.CreateAsync(user, register.Password);
                     if (result.Succeeded)
                     {
@@ -73,9 +87,10 @@ namespace Mi_Task_Api.Controllers
         public async Task<IActionResult> SignUser([FromBody] Login login)
         {
             try
-            {
+            {                
                 if (ModelState.IsValid)
                 {
+                    
                     var user = await _userManager.FindByEmailAsync(login.Email);
                     if (user == null)
                     {
@@ -100,8 +115,9 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in SignUser");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in SignUser");
             }
-            
+
         }
+        [Authorize()]
         [HttpPost("/addfriend")]
         public async Task<IActionResult> ReceivingAddFriend([FromBody] FriendsDto friends)
         {
@@ -134,6 +150,7 @@ namespace Mi_Task_Api.Controllers
             }
             
         }
+        [Authorize]
         [HttpPatch("/assignedstatus={id},{status}")]
         public async Task<IActionResult> ReceivingAssignedStatus(int id, string status)
         {
@@ -161,6 +178,7 @@ namespace Mi_Task_Api.Controllers
             }
             
         }
+        [Authorize]
         [HttpPost("/addtask")]
         public async Task<IActionResult> ReceivingTask([FromBody] MiTaskDto addtask)
         {
@@ -168,6 +186,8 @@ namespace Mi_Task_Api.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    Console.WriteLine(userId);
                     var task = new MiTasks
                     {
                         IdUser = addtask.UserId,
@@ -198,6 +218,7 @@ namespace Mi_Task_Api.Controllers
             }
             
         }
+        [Authorize]
         [HttpPost("/addscoredtask")]
         public async Task<IActionResult> ReceivingScoreTask([FromBody] ScoredTaskDto addScoredTask)
         {
@@ -228,6 +249,7 @@ namespace Mi_Task_Api.Controllers
             
 
         }
+        [Authorize]
         [HttpPatch("/scoretaskstatus={scoredtaskid},{status}")]
         public async Task<IActionResult> ReceivingScoredTaskStatus(int scoredtaskid,string status)
         {
@@ -251,6 +273,7 @@ namespace Mi_Task_Api.Controllers
             }
             
         }
+        [Authorize]
         [HttpPatch("/taskstatus={taskId},{status}")]
         public async Task<IActionResult> ReceivingTaskStatus(int taskId,string status)
         {
@@ -275,6 +298,7 @@ namespace Mi_Task_Api.Controllers
            
 
         }
+        [Authorize]
         [HttpDelete("/taskremove={taskid}")]
         public async Task<IActionResult> ReceivingRemoveTask(int taskid)
         {
@@ -298,6 +322,7 @@ namespace Mi_Task_Api.Controllers
             }
             
         }
+        [Authorize]
         [HttpDelete("/removescoretask={taskid}")]
         public async Task<IActionResult> ReceivingRemoveScoreTask(int taskid)
         {

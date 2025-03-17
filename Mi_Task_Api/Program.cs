@@ -64,6 +64,9 @@ try
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
     });
+
+    builder.Services.AddAuthorization();
+    builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<IControllerAuthentication, ControllerAuthentication>();
     builder.Services.AddScoped<IFriends, ManagerFriends>();
     builder.Services.AddScoped<ITasks, ManagerTask>();
@@ -80,11 +83,15 @@ try
     {
         app.UseSwagger();
         app.UseSwaggerUI();
-    }
-
+    }    
     app.UseHttpsRedirection();
+
+    app.UseMiddleware<MiddlewareHeader>();
+
     app.UseAuthentication();
     app.UseAuthorization();
+    
+
 
     app.MapControllers();
 

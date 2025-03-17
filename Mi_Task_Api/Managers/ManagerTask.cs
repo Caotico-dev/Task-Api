@@ -1,10 +1,12 @@
 ﻿using Mi_Task_Api.Model;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Mi_Task_Api.Managers
 {
     public interface ITasks
     {
+
         Task<bool> AddTask(MiTasks task);
         Task<MiTasks> GetTask(int TaskId);
         Task<bool> AssignedTask(ScoredTasks scoredTasks);
@@ -20,20 +22,30 @@ namespace Mi_Task_Api.Managers
         private readonly IVerifyTask _VerifyTask;
         private readonly IStatus _status;
         private readonly ILogger<ManagerTask> _logger;
-        public ManagerTask(UserDbContext context,IVerifyTask verifyTask,IStatus status,ILogger<ManagerTask> logger)
+        private readonly string _userId;    
+
+        public ManagerTask(UserDbContext context,IVerifyTask verifyTask,IStatus status,ILogger<ManagerTask> logger,IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _VerifyTask = verifyTask;
             _status = status;
             _logger = logger;
+
+            _userId = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+                  
         }
 
         public async Task<bool> AddTask(MiTasks task)
         {
             try
             {
-                if(task != null)
+                if (task.IdUser != _userId)
                 {
+                    return false;
+                }
+
+                if (task != null)
+                {                    
                     task.Prioritis = _VerifyTask.VerifyTaskPrioritis(task.Prioritis);
                     task.Status = _VerifyTask.VerifyTaskStatus(task.Status);
                     await _context.Tasks.AddAsync(task);
@@ -56,6 +68,12 @@ namespace Mi_Task_Api.Managers
             try
             {
                 var task = await _context.Tasks.FindAsync(scoredTasks.IdTask);
+
+                if (task!.IdUser != _userId)
+                {
+                    return false;
+                }
+
                 if (task != null)
                 {
                     scoredTasks.Status = Status.Pending.ToString();
@@ -82,6 +100,12 @@ namespace Mi_Task_Api.Managers
                 if (TaskId > 0 && status != null)
                 {
                     var task = await _context.Tasks.FindAsync(TaskId);
+
+                    if (task!.IdUser != _userId)
+                    {
+                        return false;
+                    }
+
                     if (task != null)
                     {
                         task.Status = _VerifyTask.VerifyTaskStatus(status);
@@ -109,7 +133,14 @@ namespace Mi_Task_Api.Managers
             {
                 if (TaskId > 0)
                 {
+
                     var task = await _context.Tasks.FindAsync(TaskId);
+
+                    if (task!.IdUser != _userId)
+                    {
+                        return null;
+                    }
+
                     if (task != null)
                     {
                         return task;
@@ -131,6 +162,13 @@ namespace Mi_Task_Api.Managers
                 if (Taskid > 0)
                 {
                     var task = await _context.Tasks.FindAsync(Taskid);
+
+
+                    if(task!.IdUser != _userId)
+                    {
+                        return false;
+                    }
+
                     if (task != null)
                     {
                         _context.Tasks.Remove(task);
@@ -139,7 +177,7 @@ namespace Mi_Task_Api.Managers
                         {
                             return true;
                         }
-                    }                    
+                    };                    
                 }
                 return false;
             }
@@ -156,7 +194,13 @@ namespace Mi_Task_Api.Managers
                 if(taskId > 0)
                 {
                     var taskscore = await _context.ScoredTasks.FindAsync(taskId);
-                    if(taskscore != null)
+
+                    if(taskscore!.IdUser != _userId)
+                    {
+                        return false;
+                    }
+
+                    if (taskscore != null)
                     {
                        _context.ScoredTasks.Remove(taskscore);                       
                     }
@@ -182,7 +226,12 @@ namespace Mi_Task_Api.Managers
                 if(ScoredTaskId > 0)
                 {
                     var scoredtask = await _context.ScoredTasks.FindAsync(ScoredTaskId);
-                    if(scoredtask == null)
+                    if(scoredtask!.IdUser != _userId)
+                    {
+                        return false;
+                    }
+
+                    if (scoredtask == null)
                     {
                         return false;
                     }

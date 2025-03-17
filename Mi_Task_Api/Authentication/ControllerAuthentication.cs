@@ -13,16 +13,19 @@ namespace Mi_Task_Api.Authentication
     }
     public class ControllerAuthentication : IControllerAuthentication
     {
-        IConfiguration _configuration;
+        IConfiguration _configuration;       
+
         public ControllerAuthentication(IConfiguration configuration)
         {
             _configuration = configuration;
+            
         }
-
+      
         public string GenerateJwtToken(User user)
         {
             var claims = new[]
             {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
