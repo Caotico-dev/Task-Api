@@ -39,10 +39,7 @@ namespace Mi_Task_Api.Managers
         {
             try
             {
-                if (task.IdUser != _userId)
-                {
-                    return false;
-                }
+                if (task!.IdUser != _userId) task.IdUser = _userId;
 
                 if (task != null)
                 {                    
@@ -50,10 +47,8 @@ namespace Mi_Task_Api.Managers
                     task.Status = _VerifyTask.VerifyTaskStatus(task.Status);
                     await _context.Tasks.AddAsync(task);
                     var save = await _context.SaveChangesAsync();
-                    if (save > 0)
-                    {
-                        return true;
-                    }
+                    if (save > 0) return true;
+                    
                 }
                 return false;
             }
@@ -69,20 +64,15 @@ namespace Mi_Task_Api.Managers
             {
                 var task = await _context.Tasks.FindAsync(scoredTasks.IdTask);
 
-                if (task!.IdUser != _userId)
-                {
-                    return false;
-                }
+                if (task!.IdUser != _userId) task.IdUser = _userId;
 
                 if (task != null)
                 {
                     scoredTasks.Status = Status.Pending.ToString();
                     await _context.ScoredTasks.AddAsync(scoredTasks);
                     var save = await _context.SaveChangesAsync();
-                    if (save > 0)
-                    {
-                        return true;
-                    }
+                    if (save > 0) return true;
+                    
                 }
                 return false;
             }
@@ -101,20 +91,15 @@ namespace Mi_Task_Api.Managers
                 {
                     var task = await _context.Tasks.FindAsync(TaskId);
 
-                    if (task!.IdUser != _userId)
-                    {
-                        return false;
-                    }
+                    if (task!.IdUser != _userId) task.IdUser = _userId;
 
                     if (task != null)
                     {
                         task.Status = _VerifyTask.VerifyTaskStatus(status);
                         _context.Tasks.Update(task);
                         var save = await _context.SaveChangesAsync();
-                        if (save > 0)
-                        {
-                            return true;
-                        }
+                        if (save > 0) return true;
+
                     }                    
                 }
                 return false;
@@ -136,15 +121,10 @@ namespace Mi_Task_Api.Managers
 
                     var task = await _context.Tasks.FindAsync(TaskId);
 
-                    if (task!.IdUser != _userId)
-                    {
-                        return null;
-                    }
+                    if (task!.IdUser != _userId) task.IdUser = _userId;
 
-                    if (task != null)
-                    {
-                        return task;
-                    }                    
+                    if (task != null) return task;  
+
                 }
                 return null;
             }
@@ -163,20 +143,14 @@ namespace Mi_Task_Api.Managers
                 {
                     var task = await _context.Tasks.FindAsync(Taskid);
 
-
-                    if(task!.IdUser != _userId)
-                    {
-                        return false;
-                    }
+                    if (task!.IdUser != _userId) task.IdUser = _userId;
 
                     if (task != null)
                     {
                         _context.Tasks.Remove(task);
                         var save = await _context.SaveChangesAsync();
-                        if (save > 0)
-                        {
-                            return true;
-                        }
+                        if (save > 0) return true;
+
                     };                    
                 }
                 return false;
@@ -195,20 +169,13 @@ namespace Mi_Task_Api.Managers
                 {
                     var taskscore = await _context.ScoredTasks.FindAsync(taskId);
 
-                    if(taskscore!.IdUser != _userId)
-                    {
-                        return false;
-                    }
+                    if (taskscore!.IdUser != _userId) taskscore.IdUser = _userId;
 
-                    if (taskscore != null)
-                    {
-                       _context.ScoredTasks.Remove(taskscore);                       
-                    }
+                    if (taskscore != null) _context.ScoredTasks.Remove(taskscore);
+
                     var save = await _context.SaveChangesAsync();
-                    if(save > 0)
-                    {
-                        return true;
-                    }
+                    if(save > 0) return true;
+
                 }
                 return false;
             }
@@ -226,23 +193,16 @@ namespace Mi_Task_Api.Managers
                 if(ScoredTaskId > 0)
                 {
                     var scoredtask = await _context.ScoredTasks.FindAsync(ScoredTaskId);
-                    if(scoredtask!.IdUser != _userId)
-                    {
-                        return false;
-                    }
 
-                    if (scoredtask == null)
-                    {
-                        return false;
-                    }
+                    if (scoredtask!.IdUser != _userId) scoredtask.IdUser = _userId;
+
+                    if (scoredtask == null) return false;                    
 
                     scoredtask!.Status = _status.VerifyStatus(status);
                     _context.ScoredTasks.Update(scoredtask);
                     int save = await _context.SaveChangesAsync();
-                    if (save > 0)
-                    {
-                        return true;
-                    }
+
+                    if (save > 0) return true;                   
                 }
                 
                 return false;

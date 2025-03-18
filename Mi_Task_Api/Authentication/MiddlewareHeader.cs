@@ -9,7 +9,8 @@
         }
         public async Task InvokeAsync(HttpContext context)
         {
-            throw new NotImplementedException();
+
+            await _next(context); 
         }
 
     }

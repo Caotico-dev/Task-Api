@@ -31,7 +31,6 @@ namespace Mi_Task_Api.Managers
                 var user = await _db.Users
                 .Include(u => u.MiTasks)
                 .Include(u => u.ScoredTasks)
-                .Include(u => u.Friends)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
                 if (user == null)
@@ -43,13 +42,7 @@ namespace Mi_Task_Api.Managers
                 var notebook = new NoteBook
                 {
                     Name = user.UserName,
-                    FriendsDtos = user.Friends.Select(f => new FriendShipDto
-                    {
-                        Id = f.Id,
-                        UserId = f.IdUser,
-                        FriendId = f.IdFriendShip,
-                        Status = f.Status
-                    }).ToList(),
+                    FriendsDtos = await this.GetFriends(user.Id),    
                     ScoredTaskDtos = user.ScoredTasks.Select(st => new ScoreTasksDto
                     {
                         Id = st.Id,
@@ -115,6 +108,32 @@ namespace Mi_Task_Api.Managers
                 return Array.Empty<TaskNoted>().ToList();   
             }        
 
+        }
+        private async Task<List<FriendShipDto>> GetFriends(string userid)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(userid))
+                {
+                    var ListFriends = await _db.Friends.Where(s => (s.IdUser == userid || s.IdFriendShip == userid) && (s.Status == Status.Accepted.ToString() || s.Status == Status.Pending.ToString()) ).ToListAsync();
+
+                   
+                    if (ListFriends.Count > 0)  return ListFriends.Select(s => new FriendShipDto
+                    {
+                        Id = s.Id,
+                        UserId = s.IdUser,
+                        FriendId = s.IdFriendShip,
+                        Status = s.Status,
+                    }).ToList();
+
+                }
+                return Array.Empty<FriendShipDto>().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetFriends");
+                return Array.Empty<FriendShipDto>().ToList();
+            }
         }
 
     }
