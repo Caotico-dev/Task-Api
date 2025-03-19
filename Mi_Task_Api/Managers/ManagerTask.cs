@@ -1,5 +1,4 @@
 ﻿using Mi_Task_Api.Model;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Mi_Task_Api.Managers
@@ -10,21 +9,21 @@ namespace Mi_Task_Api.Managers
         Task<bool> AddTask(MiTasks task);
         Task<MiTasks> GetTask(int TaskId);
         Task<bool> AssignedTask(ScoredTasks scoredTasks);
-        Task<bool> AssignedTaskStatus(int TaskId,string status); 
-        Task<bool> AssignedScoreTaskStatus(int ScoredTaskId,string status);
+        Task<bool> AssignedTaskStatus(int TaskId, string status);
+        Task<bool> AssignedScoreTaskStatus(int ScoredTaskId, string status);
         Task<bool> RemoveTask(int Taskid);
         Task<bool> RemoveScoreTask(int taskId);
-    }   
-    
+    }
+
     public class ManagerTask : ITasks
     {
         private readonly UserDbContext _context;
         private readonly IVerifyTask _VerifyTask;
         private readonly IStatus _status;
         private readonly ILogger<ManagerTask> _logger;
-        private readonly string _userId;    
+        private readonly string _userId;
 
-        public ManagerTask(UserDbContext context,IVerifyTask verifyTask,IStatus status,ILogger<ManagerTask> logger,IHttpContextAccessor httpContextAccessor)
+        public ManagerTask(UserDbContext context, IVerifyTask verifyTask, IStatus status, ILogger<ManagerTask> logger, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _VerifyTask = verifyTask;
@@ -32,7 +31,7 @@ namespace Mi_Task_Api.Managers
             _logger = logger;
 
             _userId = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
-                  
+
         }
 
         public async Task<bool> AddTask(MiTasks task)
@@ -42,19 +41,19 @@ namespace Mi_Task_Api.Managers
                 if (task!.IdUser != _userId) task.IdUser = _userId;
 
                 if (task != null)
-                {                    
+                {
                     task.Prioritis = _VerifyTask.VerifyTaskPrioritis(task.Prioritis);
                     task.Status = _VerifyTask.VerifyTaskStatus(task.Status);
                     await _context.Tasks.AddAsync(task);
                     var save = await _context.SaveChangesAsync();
                     if (save > 0) return true;
-                    
+
                 }
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"Error in AddTask");
+                _logger.LogError(ex, "Error in AddTask");
                 return false;
             }
         }
@@ -72,7 +71,7 @@ namespace Mi_Task_Api.Managers
                     await _context.ScoredTasks.AddAsync(scoredTasks);
                     var save = await _context.SaveChangesAsync();
                     if (save > 0) return true;
-                    
+
                 }
                 return false;
             }
@@ -100,7 +99,7 @@ namespace Mi_Task_Api.Managers
                         var save = await _context.SaveChangesAsync();
                         if (save > 0) return true;
 
-                    }                    
+                    }
                 }
                 return false;
 
@@ -123,7 +122,7 @@ namespace Mi_Task_Api.Managers
 
                     if (task!.IdUser != _userId) task.IdUser = _userId;
 
-                    if (task != null) return task;  
+                    if (task != null) return task;
 
                 }
                 return null;
@@ -132,7 +131,7 @@ namespace Mi_Task_Api.Managers
             {
                 _logger.LogError(ex, "Error in GetTask");
                 return null;
-            }    
+            }
         }
 
         public async Task<bool> RemoveTask(int Taskid)
@@ -151,13 +150,13 @@ namespace Mi_Task_Api.Managers
                         var save = await _context.SaveChangesAsync();
                         if (save > 0) return true;
 
-                    };                    
+                    };
                 }
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in RemoveTask");    
+                _logger.LogError(ex, "Error in RemoveTask");
                 return false;
             }
         }
@@ -165,7 +164,7 @@ namespace Mi_Task_Api.Managers
         {
             try
             {
-                if(taskId > 0)
+                if (taskId > 0)
                 {
                     var taskscore = await _context.ScoredTasks.FindAsync(taskId);
 
@@ -174,7 +173,7 @@ namespace Mi_Task_Api.Managers
                     if (taskscore != null) _context.ScoredTasks.Remove(taskscore);
 
                     var save = await _context.SaveChangesAsync();
-                    if(save > 0) return true;
+                    if (save > 0) return true;
 
                 }
                 return false;
@@ -190,21 +189,21 @@ namespace Mi_Task_Api.Managers
         {
             try
             {
-                if(ScoredTaskId > 0)
+                if (ScoredTaskId > 0)
                 {
                     var scoredtask = await _context.ScoredTasks.FindAsync(ScoredTaskId);
 
                     if (scoredtask!.IdUser != _userId) scoredtask.IdUser = _userId;
 
-                    if (scoredtask == null) return false;                    
+                    if (scoredtask == null) return false;
 
                     scoredtask!.Status = _status.VerifyStatus(status);
                     _context.ScoredTasks.Update(scoredtask);
                     int save = await _context.SaveChangesAsync();
 
-                    if (save > 0) return true;                   
+                    if (save > 0) return true;
                 }
-                
+
                 return false;
             }
             catch (Exception ex)

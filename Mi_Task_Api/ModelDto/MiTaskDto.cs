@@ -5,13 +5,13 @@ namespace Mi_Task_Api.ModelDto
     public class MiTaskDto
     {
         [Required]
-        public string UserId { get; set; } = null!;        
-        public int TaskId { get; set; } 
+        public string UserId { get; set; } = null!;
+        public int TaskId { get; set; }
         [Required]
         [MaxLength(400)]
         public string Description { get; set; } = null!;
         [Required]
-        [MaxLength(100)] 
+        [MaxLength(100)]
         public string Prioritis { get; set; } = null!;
         [Required]
         public DateOnly Term { get; set; }
@@ -31,7 +31,7 @@ namespace Mi_Task_Api.ModelDto
         [MaxLength(100)]
         public string Comments { get; set; } = null!;
         [Required]
-        [MaxLength(100)]    
+        [MaxLength(100)]
         public string ExpectedResults { get; set; } = null!;
     }
 }

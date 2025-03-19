@@ -14,10 +14,10 @@ Log.Logger = new LoggerConfiguration()
      .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug)
      .WriteTo.MongoDBBson(cfg =>
      {
-         cfg.SetConnectionString("mongodb://localhost:27017/Logs");     
+         cfg.SetConnectionString("mongodb://localhost:27017/Logs");
          cfg.SetCreateCappedCollection(100);
-         cfg.SetRollingInternal(Serilog.Sinks.MongoDB.RollingInterval.Day);        
-     })     
+         cfg.SetRollingInternal(Serilog.Sinks.MongoDB.RollingInterval.Day);
+     })
     .CreateLogger();
 
 Log.Information("Starting web application");
@@ -83,14 +83,14 @@ try
     {
         app.UseSwagger();
         app.UseSwaggerUI();
-    }    
+    }
     app.UseHttpsRedirection();
 
     app.UseMiddleware<MiddlewareHeader>();
 
     app.UseAuthentication();
     app.UseAuthorization();
-    
+
 
 
     app.MapControllers();

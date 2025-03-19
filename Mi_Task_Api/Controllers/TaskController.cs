@@ -1,12 +1,10 @@
-﻿using Mi_Task_Api.Model;
-using Microsoft.AspNetCore.Http;
+﻿using Mi_Task_Api.Authentication;
+using Mi_Task_Api.Managers;
+using Mi_Task_Api.Model;
+using Mi_Task_Api.ModelDto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Mi_Task_Api.ModelDto;
-using Mi_Task_Api.Authentication;
-using Mi_Task_Api.Managers;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace Mi_Task_Api.Controllers
 {
@@ -36,20 +34,9 @@ namespace Mi_Task_Api.Controllers
             _friends = friends;
             _task = tasks;
             _noteBook = book;
-            _logger = logger;   
+            _logger = logger;
 
         }
-        protected string GetUserId()
-{
-    var userid = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-    if (userid == null)
-    {
-        throw new UnauthorizedAccessException("User ID not found. The user is not authorized.");
-    }
-    return userid;
-}
-
-
 
         [HttpPost("/registar")]
         public async Task<IActionResult> RegisterUser([FromBody] Register register)
@@ -81,16 +68,16 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in RegisterUser");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in RegisterUser");
             }
-            
+
         }
         [HttpPost("/sign")]
         public async Task<IActionResult> SignUser([FromBody] Login login)
         {
             try
-            {                
+            {
                 if (ModelState.IsValid)
                 {
-                    
+
                     var user = await _userManager.FindByEmailAsync(login.Email);
                     if (user == null)
                     {
@@ -148,7 +135,7 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in ReceivingAddFriend");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingAddFriend");
             }
-            
+
         }
         [Authorize]
         [HttpPatch("/assignedstatus={id},{status}")]
@@ -176,7 +163,7 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in ReceivingAssignedStatus");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingAssignedStatus");
             }
-            
+
         }
         [Authorize]
         [HttpPost("/addtask")]
@@ -186,8 +173,6 @@ namespace Mi_Task_Api.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    Console.WriteLine(userId);
                     var task = new MiTasks
                     {
                         IdUser = addtask.UserId,
@@ -216,7 +201,7 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in ReceivingTask");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingTask");
             }
-            
+
         }
         [Authorize]
         [HttpPost("/addscoredtask")]
@@ -246,12 +231,12 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in ReceivingScoreTask");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingScoreTask");
             }
-            
+
 
         }
         [Authorize]
         [HttpPatch("/scoretaskstatus={scoredtaskid},{status}")]
-        public async Task<IActionResult> ReceivingScoredTaskStatus(int scoredtaskid,string status)
+        public async Task<IActionResult> ReceivingScoredTaskStatus(int scoredtaskid, string status)
         {
             try
             {
@@ -271,11 +256,11 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in ReceivingScoredTaskStatus");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingScoredTaskStatus");
             }
-            
+
         }
         [Authorize]
         [HttpPatch("/taskstatus={taskId},{status}")]
-        public async Task<IActionResult> ReceivingTaskStatus(int taskId,string status)
+        public async Task<IActionResult> ReceivingTaskStatus(int taskId, string status)
         {
             try
             {
@@ -295,7 +280,7 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in ReceivingTaskStatus");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingTaskStatus");
             }
-           
+
 
         }
         [Authorize]
@@ -320,7 +305,7 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in ReceivingRemoveTask");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingRemoveTask");
             }
-            
+
         }
         [Authorize]
         [HttpDelete("/removescoretask={taskid}")]
@@ -344,7 +329,7 @@ namespace Mi_Task_Api.Controllers
                 _logger.LogError(ex, "Error in ReceivingRemoveScoreTask");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in ReceivingRemoveScoreTask");
             }
-           
+
         }
     }
 }

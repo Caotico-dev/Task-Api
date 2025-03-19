@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 namespace Mi_Task_Api.Model
 {
-    public class UserDbContext:IdentityDbContext<User>
+    public class UserDbContext : IdentityDbContext<User>
     {
         public DbSet<MiTasks> Tasks { get; set; }
         public DbSet<Friends> Friends { get; set; }
@@ -56,7 +56,7 @@ namespace Mi_Task_Api.Model
                        .IsRequired(required: true)
                        .HasMaxLength(100);
 
-                builder.Property(t => t.Comments) 
+                builder.Property(t => t.Comments)
                        .IsRequired(required: true)
                        .HasMaxLength(100);
 
@@ -101,7 +101,7 @@ namespace Mi_Task_Api.Model
                        .WithMany(u => u.ScoredTasks)
                        .HasForeignKey(s => s.IdUser).OnDelete(DeleteBehavior.Cascade);
 
-                builder.HasOne<MiTasks>( t => t.MiTasks)
+                builder.HasOne<MiTasks>(t => t.MiTasks)
                        .WithMany(m => m.ScoredTasks)
                        .HasForeignKey(t => t.IdTask).OnDelete(DeleteBehavior.NoAction);
 
@@ -117,11 +117,11 @@ namespace Mi_Task_Api.Model
                 builder.Property(s => s.Status)
                        .IsRequired(required: true)
                        .HasMaxLength(20);
-             
+
 
             });
             base.OnModelCreating(builder);
-            
+
         }
 
     }

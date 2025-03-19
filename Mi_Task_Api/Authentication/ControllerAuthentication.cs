@@ -1,5 +1,4 @@
 ﻿using Mi_Task_Api.Model;
-using Mi_Task_Api.ModelDto;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,14 +12,14 @@ namespace Mi_Task_Api.Authentication
     }
     public class ControllerAuthentication : IControllerAuthentication
     {
-        IConfiguration _configuration;       
+        IConfiguration _configuration;
 
         public ControllerAuthentication(IConfiguration configuration)
         {
             _configuration = configuration;
-            
+
         }
-      
+
         public string GenerateJwtToken(User user)
         {
             var claims = new[]
@@ -33,7 +32,7 @@ namespace Mi_Task_Api.Authentication
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                
+
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Issuer"],
                 claims: claims,

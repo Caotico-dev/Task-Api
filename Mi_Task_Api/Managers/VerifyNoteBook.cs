@@ -27,7 +27,7 @@
     {
         string VerifyStatus(string status);
     }
-    public class VerifyNoteBook:IVerifyTask,IStatus
+    public class VerifyNoteBook : IVerifyTask, IStatus
     {
         public VerifyNoteBook() { }
         public string VerifyTaskPrioritis(string prioritis)

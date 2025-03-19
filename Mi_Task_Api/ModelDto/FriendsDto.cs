@@ -3,7 +3,7 @@
 namespace Mi_Task_Api.ModelDto
 {
     public class FriendsDto
-    {        
+    {
         [Required]
         public string UserId { get; set; } = null!;
         [Required]

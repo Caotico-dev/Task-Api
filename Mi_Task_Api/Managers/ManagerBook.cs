@@ -7,13 +7,13 @@ namespace Mi_Task_Api.Managers
     public interface INoteBook
     {
         Task<NoteBook?> GetNotebook(string userId);
-    }    
-    public class ManagerBook:INoteBook
+    }
+    public class ManagerBook : INoteBook
     {
         private readonly UserDbContext _db;
         private readonly ILogger<ManagerBook> _logger;
 
-        public ManagerBook(UserDbContext userDbContext,ILogger<ManagerBook> logger)
+        public ManagerBook(UserDbContext userDbContext, ILogger<ManagerBook> logger)
         {
             _db = userDbContext;
             _logger = logger;
@@ -42,7 +42,7 @@ namespace Mi_Task_Api.Managers
                 var notebook = new NoteBook
                 {
                     Name = user.UserName,
-                    FriendsDtos = await this.GetFriends(user.Id),    
+                    FriendsDtos = await this.GetFriends(user.Id),
                     ScoredTaskDtos = user.ScoredTasks.Select(st => new ScoreTasksDto
                     {
                         Id = st.Id,
@@ -72,10 +72,10 @@ namespace Mi_Task_Api.Managers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetNotebook");
-                return Array.Empty<NoteBook>().FirstOrDefault();    
+                return Array.Empty<NoteBook>().FirstOrDefault();
             }
-            
-            
+
+
         }
         private async Task<List<TaskNoted>> GetTaskNoteds(string UserId)
         {
@@ -104,9 +104,9 @@ namespace Mi_Task_Api.Managers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in GetTaskNoteds"); 
-                return Array.Empty<TaskNoted>().ToList();   
-            }        
+                _logger.LogError(ex, "Error in GetTaskNoteds");
+                return Array.Empty<TaskNoted>().ToList();
+            }
 
         }
         private async Task<List<FriendShipDto>> GetFriends(string userid)
@@ -115,14 +115,14 @@ namespace Mi_Task_Api.Managers
             {
                 if (!string.IsNullOrWhiteSpace(userid))
                 {
-                    var ListFriends = await _db.Friends.Where(s => (s.IdUser == userid || s.IdFriendShip == userid) && (s.Status == Status.Accepted.ToString() || s.Status == Status.Pending.ToString()) ).ToListAsync();
+                    var ListFriends = await _db.Friends.Where(s => (s.IdUser == userid || s.IdFriendShip == userid) && (s.Status == Status.Accepted.ToString() || s.Status == Status.Pending.ToString())).ToListAsync();
 
-                   
-                    if (ListFriends.Count > 0)  return ListFriends.Select(s => new FriendShipDto
+
+                    if (ListFriends.Count > 0) return ListFriends.Select(s => new FriendShipDto
                     {
                         Id = s.Id,
-                        UserId = s.IdUser,
-                        FriendId = s.IdFriendShip,
+                        FriendX = s.IdUser,
+                        FriendY = s.IdFriendShip,
                         Status = s.Status,
                     }).ToList();
 

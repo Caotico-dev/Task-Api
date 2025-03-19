@@ -4,9 +4,9 @@
     {
         public int Id { get; set; }
         public string IdUser { get; set; } = null!;
-        public int IdTask { get; set; } 
-        public string Status {  get; set; } = null!;
-        public  virtual User User { get; set; } = null!;
-        public virtual MiTasks MiTasks { get; set; } = null!;   
+        public int IdTask { get; set; }
+        public string Status { get; set; } = null!;
+        public virtual User User { get; set; } = null!;
+        public virtual MiTasks MiTasks { get; set; } = null!;
     }
 }
