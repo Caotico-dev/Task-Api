@@ -1,4 +1,5 @@
 ﻿using Mi_Task_Api.Model;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Mi_Task_Api.Managers
@@ -7,7 +8,6 @@ namespace Mi_Task_Api.Managers
     {
 
         Task<bool> AddTask(MiTasks task);
-        Task<MiTasks> GetTask(int TaskId);
         Task<bool> AssignedTask(ScoredTasks scoredTasks);
         Task<bool> AssignedTaskStatus(int TaskId, string status);
         Task<bool> AssignedScoreTaskStatus(int ScoredTaskId, string status);
@@ -63,7 +63,7 @@ namespace Mi_Task_Api.Managers
             {
                 var task = await _context.Tasks.FindAsync(scoredTasks.IdTask);
 
-                if (task!.IdUser != _userId) task.IdUser = _userId;
+                if (task!.IdUser != _userId) return false;
 
                 if (task != null)
                 {
@@ -90,7 +90,7 @@ namespace Mi_Task_Api.Managers
                 {
                     var task = await _context.Tasks.FindAsync(TaskId);
 
-                    if (task!.IdUser != _userId) task.IdUser = _userId;
+                    if (task!.IdUser != _userId) return false;
 
                     if (task != null)
                     {
@@ -111,29 +111,6 @@ namespace Mi_Task_Api.Managers
             }
         }
 
-        public async Task<MiTasks> GetTask(int TaskId)
-        {
-            try
-            {
-                if (TaskId > 0)
-                {
-
-                    var task = await _context.Tasks.FindAsync(TaskId);
-
-                    if (task!.IdUser != _userId) task.IdUser = _userId;
-
-                    if (task != null) return task;
-
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetTask");
-                return null;
-            }
-        }
-
         public async Task<bool> RemoveTask(int Taskid)
         {
             try
@@ -142,7 +119,7 @@ namespace Mi_Task_Api.Managers
                 {
                     var task = await _context.Tasks.FindAsync(Taskid);
 
-                    if (task!.IdUser != _userId) task.IdUser = _userId;
+                    if (task!.IdUser != _userId) return false;
 
                     if (task != null)
                     {
@@ -168,7 +145,7 @@ namespace Mi_Task_Api.Managers
                 {
                     var taskscore = await _context.ScoredTasks.FindAsync(taskId);
 
-                    if (taskscore!.IdUser != _userId) taskscore.IdUser = _userId;
+                    if (taskscore!.IdUser != _userId) return false;
 
                     if (taskscore != null) _context.ScoredTasks.Remove(taskscore);
 
@@ -191,11 +168,13 @@ namespace Mi_Task_Api.Managers
             {
                 if (ScoredTaskId > 0)
                 {
-                    var scoredtask = await _context.ScoredTasks.FindAsync(ScoredTaskId);
-
-                    if (scoredtask!.IdUser != _userId) scoredtask.IdUser = _userId;
+                    var scoredtask = await _context.ScoredTasks.Include(t => t.MiTasks).FirstOrDefaultAsync(sc => sc.Id == ScoredTaskId);
+                    
+                    if (scoredtask!.IdUser != _userId) return false;
 
                     if (scoredtask == null) return false;
+
+                    if (scoredtask.MiTasks.IdUser != _userId && status == Status.Block.ToString()) return false;
 
                     scoredtask!.Status = _status.VerifyStatus(status);
                     _context.ScoredTasks.Update(scoredtask);

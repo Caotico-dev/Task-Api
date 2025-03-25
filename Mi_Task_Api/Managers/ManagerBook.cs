@@ -8,18 +8,21 @@ namespace Mi_Task_Api.Managers
     {
         Task<NoteBook?> GetNotebook(string userId);
     }
-    public class ManagerBook : INoteBook
+    public interface ISharedTask
+    {
+        Task<MiTasks> GetTask(int TaskId);
+    }
+    public class ManagerBook : INoteBook, ISharedTask
     {
         private readonly UserDbContext _db;
         private readonly ILogger<ManagerBook> _logger;
-
+        private NoteBook _notebook;
         public ManagerBook(UserDbContext userDbContext, ILogger<ManagerBook> logger)
         {
             _db = userDbContext;
             _logger = logger;
+            _notebook = new NoteBook();
         }
-
-
         public async Task<NoteBook?> GetNotebook(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -28,46 +31,23 @@ namespace Mi_Task_Api.Managers
             }
             try
             {
-                var user = await _db.Users
-                .Include(u => u.MiTasks)
-                .Include(u => u.ScoredTasks)
-                .FirstOrDefaultAsync(u => u.Id == userId);
+                 var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
-                if (user == null)
-                {
-                    return null;
-                }
+                if (user == null) return null;                
 
 
-                var notebook = new NoteBook
-                {
-                    Name = user.UserName,
-                    FriendsDtos = await this.GetFriends(user.Id),
-                    ScoredTaskDtos = user.ScoredTasks.Select(st => new ScoreTasksDto
-                    {
-                        Id = st.Id,
-                        IdTask = st.IdTask,
-                        IdUser = st.IdUser,
-                        Status = st.Status
-                    }).ToList(),
-                    MiTaskDtos = user.MiTasks.Select(mt => new MiTaskDto
-                    {
-                        UserId = mt.IdUser,
-                        TaskId = mt.TaskId,
-                        Description = mt.Description,
-                        Prioritis = mt.Prioritis,
-                        Term = mt.Term,
-                        Resource = mt.Resource,
-                        Status = mt.Status,
-                        Dependecy = mt.Dependecy,
-                        SubTasks = mt.SubTasks,
-                        Comments = mt.Comments,
-                        ExpectedResults = mt.ExpectedResults
-                    }).ToList(),
-                    TaskNoteds = await this.GetTaskNoteds(user.Id)
-                };
+                this._notebook.Name = user.UserName;
+                this._notebook.FriendsDtos = await this.GetFriends(userId);
 
-                return notebook;
+                var (ListTask, ListScored) = await GetTaskAndScored(userId);
+
+                this._notebook.ScoredTaskDtos = ListScored;
+                this._notebook.MiTaskDtos = ListTask;
+                
+                this._notebook.ScoredTaskDtos.AddRange(await this.GetTaskScored(userId));
+                this._notebook.TaskNoteds = await this.GetTaskNoteds(userId);
+
+                return _notebook;
             }
             catch (Exception ex)
             {
@@ -77,6 +57,22 @@ namespace Mi_Task_Api.Managers
 
 
         }
+        private async Task<List<ScoreTasksDto>> GetTaskScored(string UserId)
+        {
+            if(!string.IsNullOrWhiteSpace(UserId))
+            {
+                var scoredtask = await _db.ScoredTasks.Where(sd => sd.IdUser == UserId && (sd.Status != Status.Rejected.ToString() || sd.Status != Status.Block.ToString())).Select(sd => new ScoreTasksDto
+                {
+                    Id = sd.Id,
+                    IdTask = sd.IdTask,
+                    IdUser = sd.IdUser,
+                    Status = sd.Status
+                }).ToListAsync();
+
+                return scoredtask;
+            }
+            return Array.Empty<ScoreTasksDto>().ToList();
+        }  
         private async Task<List<TaskNoted>> GetTaskNoteds(string UserId)
         {
             try
@@ -109,14 +105,57 @@ namespace Mi_Task_Api.Managers
             }
 
         }
+        private async Task<(List<MiTaskDto>, List<ScoreTasksDto>)> GetTaskAndScored(string idUser)
+        {
+            if (!string.IsNullOrWhiteSpace(idUser))
+            {
+                var TaskAndScored = await _db.Tasks.Include(u => u.ScoredTasks).Where(u => u.IdUser == idUser).ToListAsync();
+
+                var Task = new List<MiTaskDto>();
+                var Scored = new List<ScoreTasksDto>();
+
+                foreach (var item in TaskAndScored)
+                {
+                    Task.Add(new MiTaskDto
+                    {
+                        UserId = item.IdUser,
+                        TaskId = item.TaskId,
+                        Description = item.Description,
+                        Prioritis = item.Prioritis,
+                        Term = item.Term,
+                        Resource = item.Resource,
+                        Status = item.Status,
+                        Dependecy = item.Dependecy,
+                        SubTasks = item.SubTasks,
+                        Comments = item.Comments,
+                        ExpectedResults = item.ExpectedResults
+                    });
+
+                    foreach (var scored in item.ScoredTasks)
+                    {
+                        if(scored.Status != Status.Block.ToString() || scored.Status != Status.Rejected.ToString())
+                        Scored.Add(new ScoreTasksDto
+                        {
+                            Id = scored.Id,
+                            IdTask = scored.IdTask,
+                            IdUser = scored.IdUser,
+                            Status = scored.Status
+                        });
+                    }
+                }
+
+                return (Task, Scored);
+            }
+            return (Array.Empty<MiTaskDto>().ToList(),Array.Empty<ScoreTasksDto>().ToList());
+        }
         private async Task<List<FriendShipDto>> GetFriends(string userid)
         {
             try
             {
                 if (!string.IsNullOrWhiteSpace(userid))
                 {
-                    var ListFriends = await _db.Friends.Where(s => (s.IdUser == userid || s.IdFriendShip == userid) && (s.Status == Status.Accepted.ToString() || s.Status == Status.Pending.ToString())).ToListAsync();
-
+                    var ListFriends = await _db.Friends.Where(s => (s.IdUser == userid || s.IdFriendShip == userid) &&
+                                                                   (s.Status == Status.Accepted.ToString() || s.Status == Status.Pending.ToString() || s.Status == Status.Block.ToString())).ToListAsync();
 
                     if (ListFriends.Count > 0) return ListFriends.Select(s => new FriendShipDto
                     {
@@ -135,6 +174,23 @@ namespace Mi_Task_Api.Managers
                 return Array.Empty<FriendShipDto>().ToList();
             }
         }
-
+       
+        public async Task<MiTasks> GetTask(int TaskId)
+        {
+            try
+            {
+                if (TaskId > 0)
+                {
+                    var task = await _db.Tasks.FindAsync(TaskId);
+                    if (task != null) return task;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetTask");
+                return null;
+            }
+        }
     }
 }

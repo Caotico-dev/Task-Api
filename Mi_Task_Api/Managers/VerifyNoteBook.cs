@@ -4,7 +4,8 @@
     {
         Pending,
         Accepted,
-        Rejected
+        Rejected,
+        Block,
     }
     enum TaskStatus
     {
@@ -64,6 +65,10 @@
             {
                 return Status.Rejected.ToString();
             }
+            else if(status == Status.Block.ToString())
+            {
+                return Status.Block.ToString();
+            }           
             return Status.Pending.ToString();
         }
     }

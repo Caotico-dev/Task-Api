@@ -63,7 +63,9 @@ namespace Mi_Task_Api.Managers
 
                     if (FriendShip == null) return false;
 
-                    if (FriendShip!.IdUser != _userId) FriendShip.IdUser = _userId;
+                    if (FriendShip!.IdUser != _userId && FriendShip!.IdFriendShip != _userId) return false;
+
+                    if (FriendShip.IdUser != _userId && status == Status.Block.ToString()) return false;
 
                     FriendShip!.Status = _status.VerifyStatus(status);
                     _db.Friends.Update(FriendShip);
