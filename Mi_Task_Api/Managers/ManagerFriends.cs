@@ -56,7 +56,7 @@ namespace Mi_Task_Api.Managers
         {
             try
             {
-                if (id > 0 && string.IsNullOrWhiteSpace(status))
+                if (id > 0 && !string.IsNullOrWhiteSpace(status))
                 {
 
                     var FriendShip = await _db.Friends.FindAsync(id);

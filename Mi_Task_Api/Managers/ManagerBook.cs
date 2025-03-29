@@ -61,11 +61,12 @@ namespace Mi_Task_Api.Managers
         {
             if(!string.IsNullOrWhiteSpace(UserId))
             {
-                var scoredtask = await _db.ScoredTasks.Where(sd => sd.IdUser == UserId && (sd.Status != Status.Rejected.ToString() || sd.Status != Status.Block.ToString())).Select(sd => new ScoreTasksDto
+                var scoredtask = await _db.ScoredTasks.Where(sd => sd.IdUser == UserId && (sd.Status != Status.Rejected.ToString() && sd.Status != Status.Block.ToString())).Select(sd => new ScoreTasksDto
                 {
                     Id = sd.Id,
                     IdTask = sd.IdTask,
                     IdUser = sd.IdUser,
+                    Details = sd.Details,
                     Status = sd.Status
                 }).ToListAsync();
 
@@ -133,12 +134,12 @@ namespace Mi_Task_Api.Managers
 
                     foreach (var scored in item.ScoredTasks)
                     {
-                        if(scored.Status != Status.Block.ToString() || scored.Status != Status.Rejected.ToString())
                         Scored.Add(new ScoreTasksDto
                         {
                             Id = scored.Id,
                             IdTask = scored.IdTask,
                             IdUser = scored.IdUser,
+                            Details = scored.Details,
                             Status = scored.Status
                         });
                     }

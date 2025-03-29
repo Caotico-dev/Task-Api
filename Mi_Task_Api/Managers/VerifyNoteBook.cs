@@ -33,42 +33,26 @@
         public VerifyNoteBook() { }
         public string VerifyTaskPrioritis(string prioritis)
         {
-            if (prioritis == TaskPrioritis.High.ToString())
+            if (Enum.TryParse(prioritis, out TaskPrioritis parsedPrioritis))
             {
-                return TaskPrioritis.High.ToString();
-            }
-            else if (prioritis == TaskPrioritis.Medium.ToString())
-            {
-                return TaskPrioritis.Medium.ToString();
+                return parsedPrioritis.ToString();
             }
             return TaskPrioritis.Low.ToString();
         }
         public string VerifyTaskStatus(string status)
         {
-            if (status == TaskStatus.InProgress.ToString())
+            if (Enum.TryParse(status, out TaskStatus parsedStatus))
             {
-                return TaskStatus.InProgress.ToString();
-            }
-            else if (status == TaskStatus.Completed.ToString())
-            {
-                return TaskStatus.Completed.ToString();
+                return parsedStatus.ToString();
             }
             return TaskStatus.Pending.ToString();
         }
         public string VerifyStatus(string status)
         {
-            if (status == Status.Accepted.ToString())
+            if (Enum.TryParse(status,out Status parsedStatus) )
             {
-                return Status.Accepted.ToString();
-            }
-            else if (status == Status.Rejected.ToString())
-            {
-                return Status.Rejected.ToString();
-            }
-            else if(status == Status.Block.ToString())
-            {
-                return Status.Block.ToString();
-            }           
+                return status;  
+            }            
             return Status.Pending.ToString();
         }
     }

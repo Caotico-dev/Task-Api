@@ -143,9 +143,9 @@ namespace Mi_Task_Api.Managers
             {
                 if (taskId > 0)
                 {
-                    var taskscore = await _context.ScoredTasks.FindAsync(taskId);
+                    var taskscore = await _context.ScoredTasks.Include(s => s.MiTasks).FirstOrDefaultAsync(b => b.IdTask == taskId);
 
-                    if (taskscore!.IdUser != _userId) return false;
+                    if (taskscore!.MiTasks.IdUser != _userId) return false;
 
                     if (taskscore != null) _context.ScoredTasks.Remove(taskscore);
 
@@ -168,11 +168,10 @@ namespace Mi_Task_Api.Managers
             {
                 if (ScoredTaskId > 0)
                 {
-                    var scoredtask = await _context.ScoredTasks.Include(t => t.MiTasks).FirstOrDefaultAsync(sc => sc.Id == ScoredTaskId);
-                    
-                    if (scoredtask!.IdUser != _userId) return false;
-
+                    var scoredtask = await _context.ScoredTasks.Include(t => t.MiTasks).FirstOrDefaultAsync(sc => sc.IdTask == ScoredTaskId);
                     if (scoredtask == null) return false;
+
+                    if (scoredtask!.IdUser != _userId && scoredtask.MiTasks.IdUser != _userId) return false;                  
 
                     if (scoredtask.MiTasks.IdUser != _userId && status == Status.Block.ToString()) return false;
 

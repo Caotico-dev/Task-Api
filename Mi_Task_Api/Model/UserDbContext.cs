@@ -111,6 +111,10 @@ namespace Mi_Task_Api.Model
                 builder.Property(s => s.IdUser)
                        .IsRequired(required: true);
 
+                builder.Property(s => s.Details)
+                       .IsRequired(required: true)
+                       .HasMaxLength(400);
+
                 builder.Property(s => s.IdTask)
                        .IsRequired(required: true);
 

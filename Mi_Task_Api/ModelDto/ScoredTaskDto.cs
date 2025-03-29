@@ -8,5 +8,8 @@ namespace Mi_Task_Api.ModelDto
         public string IdUser { get; set; } = null!;
         [Required]
         public int IdTask { get; set; }
+        [Required]
+        [MaxLength(400)]        
+        public string Details { get; set; } = null!;    
     }
 }

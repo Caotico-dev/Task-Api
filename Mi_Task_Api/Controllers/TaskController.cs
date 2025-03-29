@@ -215,6 +215,7 @@ namespace Mi_Task_Api.Controllers
                     {
                         IdUser = addScoredTask.IdUser,
                         IdTask = addScoredTask.IdTask,
+                        Details = addScoredTask.Details,
 
                     };
                     bool result = await _task.AssignedTask(scoredtask);
