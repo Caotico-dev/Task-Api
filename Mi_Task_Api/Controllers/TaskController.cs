@@ -5,6 +5,7 @@ using Mi_Task_Api.ModelDto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace Mi_Task_Api.Controllers
 {
@@ -19,6 +20,7 @@ namespace Mi_Task_Api.Controllers
         private readonly ITasks _task;
         private readonly INoteBook _noteBook;
         private readonly ILogger<TaskController> _logger;
+        private readonly IAddBlackList _addBlackList;
 
         public TaskController(UserManager<User> userManager,
                               SignInManager<User> signInManager,
@@ -26,7 +28,8 @@ namespace Mi_Task_Api.Controllers
                               IFriends friends,
                               ITasks tasks,
                               INoteBook book,
-                              ILogger<TaskController> logger)
+                              ILogger<TaskController> logger,
+                              IAddBlackList addBlackList)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -35,8 +38,9 @@ namespace Mi_Task_Api.Controllers
             _task = tasks;
             _noteBook = book;
             _logger = logger;
-
+            _addBlackList = addBlackList;
         }
+
 
         [HttpPost("/registar")]
         public async Task<IActionResult> RegisterUser([FromBody] Register register)
@@ -104,6 +108,28 @@ namespace Mi_Task_Api.Controllers
             }
 
         }
+        [Authorize]
+        [HttpPost("/signout")]
+        public IActionResult SignOut()
+        {
+            try
+            {
+                var token = HttpContext.Request.Headers["Authorization"].ToString();
+                if (!string.IsNullOrEmpty(token))
+                {
+                    token = token.Replace("Bearer", "").Trim();
+                    _addBlackList.AddToBlackList(token);
+
+                    return Ok("Session Closed Successfully");
+                }
+                return BadRequest("Session not Closed Successfully");
+
+            }catch(Exception ex)
+            {
+                return StatusCode(500,ex.Message);
+            }
+           
+        } 
         [Authorize()]
         [HttpPost("/addfriend")]
         public async Task<IActionResult> ReceivingAddFriend([FromBody] FriendsDto friends)

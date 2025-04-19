@@ -139,6 +139,16 @@
   },
   {
     "ContainingType": "Mi_Task_Api.Controllers.TaskController",
+    "Method": "SignOut",
+    "RelativePath": "signout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Mi_Task_Api.Controllers.TaskController",
     "Method": "ReceivingRemoveTask",
     "RelativePath": "taskremove={taskid}",
     "HttpMethod": "DELETE",

@@ -74,6 +74,12 @@ try
     builder.Services.AddScoped<IStatus, VerifyNoteBook>();
     builder.Services.AddScoped<INoteBook, ManagerBook>();
 
+    builder.Services.AddSingleton<IAddBlackList, JwtBlackListService>();
+    builder.Services.AddSingleton<ICheckBlackList>(sp => (ICheckBlackList)sp.GetRequiredService<IAddBlackList>());
+    builder.Services.AddSingleton<IClearBlackList>(sp => (IClearBlackList)sp.GetRequiredService<IAddBlackList>());
+
+    builder.Services.AddHostedService<TokenCleanupService>();
+
 
 
     var app = builder.Build();
