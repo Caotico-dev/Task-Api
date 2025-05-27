@@ -10,14 +10,14 @@ using Serilog.Events;
 using System.Text;
 
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Error()
+    .MinimumLevel.Debug()
      .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug)
      .WriteTo.MongoDBBson(cfg =>
      {
          cfg.SetConnectionString("mongodb://localhost:27017/Logs");
          cfg.SetCreateCappedCollection(100);
          cfg.SetRollingInternal(Serilog.Sinks.MongoDB.RollingInterval.Day);
-     })
+     },restrictedToMinimumLevel: LogEventLevel.Error)
     .CreateLogger();
 
 Log.Information("Starting web application");
